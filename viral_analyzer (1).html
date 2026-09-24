@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محلل الفيرال</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&family=Tajawal:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg: #0B0D11;
+  --surface: #151920;
+  --surface-2: #1C212A;
+  --surface-3: #232935;
+  --line: #272E39;
+  --line-soft: #1E242D;
+  --text: #F3F1EA;
+  --muted: #8B92A0;
+  --muted-2: #5F6673;
+  --cyan: #2FE6D8;
+  --pink: #FF4D8D;
+  --amber: #FFB648;
+  --green: #5FE38A;
+  --red: #FF5C5C;
+  --radius: 16px;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+::selection{ background: var(--pink); color: #0B0D11; }
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  min-height: 100vh;
+  line-height: 1.65;
+}
+body::before{
+  content:'';
+  position: fixed; inset:0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(47,230,216,0.10), transparent 38%),
+    radial-gradient(circle at 88% 22%, rgba(255,77,141,0.10), transparent 38%),
+    radial-gradient(circle at 50% 100%, rgba(255,182,72,0.05), transparent 45%);
+  pointer-events:none; z-index:0;
+}
+.wrap{ max-width: 960px; margin: 0 auto; padding: 40px 20px 90px; position:relative; z-index:1;}
+
+/* ===== Header ===== */
+header{ text-align:center; margin-bottom: 30px; }
+.eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 3px; color: var(--cyan);
+  text-transform: uppercase; margin-bottom: 14px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.eyebrow::before, .eyebrow::after{ content:''; width:24px; height:1px; background: var(--line); }
+h1{
+  font-family:'Cairo', sans-serif; font-weight: 900;
+  font-size: clamp(30px, 5.2vw, 48px);
+  background: linear-gradient(100deg, var(--cyan) 10%, var(--text) 45%, var(--pink) 90%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin-bottom: 12px; letter-spacing:-0.5px;
+}
+.sub{ color: var(--muted); font-size: 15.5px; max-width: 540px; margin: 0 auto 30px; }
+
+/* Signature: timeline strip */
+.timeline-sig{
+  display:flex; align-items:stretch; height:52px; border-radius:12px; overflow:hidden;
+  border:1px solid var(--line); background: var(--surface); position:relative;
+  max-width: 620px; margin: 0 auto;
+}
+.timeline-sig .seg{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono'; font-size:10px; letter-spacing:1px; color: var(--muted-2);
+  border-inline-end: 1px solid var(--line-soft); position:relative; text-transform:uppercase;
+}
+.timeline-sig .seg:last-child{ border-inline-end:none; }
+.timeline-sig .seg .lbl{ font-family:'Cairo'; font-weight:700; font-size:12.5px; color: var(--text); margin-bottom:2px; letter-spacing:0; }
+.timeline-sig .seg.hook{ background: linear-gradient(180deg, rgba(255,77,141,0.14), transparent); }
+.timeline-sig .seg.body{ background: linear-gradient(180deg, rgba(47,230,216,0.08), transparent); }
+.timeline-sig .seg.cta{ background: linear-gradient(180deg, rgba(255,182,72,0.12), transparent); }
+.playhead{
+  position:absolute; top:0; bottom:0; width:2px; background: var(--text);
+  animation: scrub 4.5s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--text);
+}
+@keyframes scrub{
+  0%{ left:0%; } 45%{ left:98%; } 55%{ left:98%; } 100%{ left:0%; }
+}
+
+/* ===== Card ===== */
+.card{
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 18px;
+  transition: border-color .2s;
+}
+.card h2{
+  font-family:'Cairo'; font-weight:800; font-size: 17.5px; margin-bottom: 16px;
+  display:flex; align-items:center; gap:10px;
+}
+.step-num{
+  font-family:'JetBrains Mono'; font-size:11px; color: var(--bg); background: var(--cyan);
+  width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.badge{
+  font-family:'JetBrains Mono'; font-size: 10px; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 20px; padding: 3px 11px; margin-inline-start:auto;
+}
+
+/* ===== Upload zone ===== */
+.dropzone{
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  padding: 32px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition: .2s;
+  background: var(--surface-2);
+}
+.dropzone:hover, .dropzone.drag{ border-color: var(--cyan); background: rgba(47,230,216,0.05); }
+.dropzone .icon{ font-size: 32px; margin-bottom: 10px; }
+.dropzone .main-txt{ font-weight:700; font-size:15px; }
+.dropzone .sub-txt{ color: var(--muted); font-size:12.5px; margin-top:5px;}
+#fileInput{ display:none; }
+.file-chip{
+  margin-top:12px; display:none; align-items:center; justify-content:space-between;
+  background: var(--surface-3); border:1px solid var(--line); border-radius:10px;
+  padding:11px 16px; font-size: 13px;
+}
+.file-chip .name{ display:flex; align-items:center; gap:8px; }
+.file-chip button{ background:none; border:none; color: var(--red); cursor:pointer; font-size:13px; font-family:'Tajawal'; }
+
+/* Link field styled as an inert reference chip */
+.link-row{
+  display:flex; align-items:center; gap:10px; background: var(--surface-2);
+  border:1px solid var(--line); border-radius:10px; padding: 4px 6px 4px 4px; margin-top:16px;
+}
+.link-row .li{ font-size:16px; padding-inline-start:8px; opacity:.6; }
+.link-row input{
+  flex:1; background:transparent; border:none; color: var(--text); padding:10px 4px;
+  font-family:'JetBrains Mono'; font-size:12.5px; direction:ltr; text-align:right;
+}
+.link-row input:focus{ outline:none; }
+.link-row input::placeholder{ color: var(--muted-2); }
+.link-row .tag{
+  font-family:'JetBrains Mono'; font-size:9.5px; color: var(--amber); background: rgba(255,182,72,0.1);
+  border:1px solid rgba(255,182,72,0.3); border-radius:6px; padding:3px 8px; white-space:nowrap;
+}
+.hint{ font-size:12.5px; color: var(--muted-2); margin-top:8px; line-height:1.7; }
+
+.backend-box{
+  margin-top:18px; background: var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:16px;
+}
+.backend-box .bb-head{ display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+.backend-box .bb-head .arrow{ margin-inline-start:auto; color: var(--muted); transition:.2s; font-size:12px; }
+.backend-box .bb-head.open .arrow{ transform: rotate(180deg); }
+.backend-box .bb-title{ font-family:'Cairo'; font-weight:700; font-size:14px; }
+.backend-box .bb-body{ display:none; margin-top:14px; }
+.backend-box .bb-body.open{ display:block; }
+.backend-row{ display:flex; gap:8px; }
+.backend-row input{
+  flex:1; background: var(--surface-3); border:1px solid var(--line); color: var(--text);
+  border-radius:9px; padding:11px 13px; font-family:'JetBrains Mono'; font-size:12.5px; direction:ltr; text-align:right;
+}
+.backend-row input:focus{ outline:none; border-color: var(--cyan); }
+.check-btn{
+  background: var(--surface-3); border:1px solid var(--line); color: var(--text);
+  border-radius:9px; padding:0 16px; cursor:pointer; font-family:'Tajawal'; font-size:13px; white-space:nowrap;
+}
+.check-btn:hover{ border-color: var(--cyan); }
+.status-line{ margin-top:10px; font-family:'JetBrains Mono'; font-size:11.5px; display:flex; align-items:center; gap:7px; }
+.status-dot{ width:8px; height:8px; border-radius:50%; background: var(--muted-2); flex-shrink:0; }
+.status-dot.ok{ background: var(--green); box-shadow:0 0 6px var(--green); }
+.status-dot.bad{ background: var(--red); box-shadow:0 0 6px var(--red); }
+.status-dot.pending{ background: var(--amber); animation: pulse 1s infinite; }
+@keyframes pulse{ 50%{ opacity:.4; } }
+
+label.field-label{ display:block; font-size:13px; color: var(--muted); margin: 18px 0 7px; font-weight:500; }
+textarea{
+  width:100%; background: var(--surface-2); border:1px solid var(--line);
+  color: var(--text); border-radius:10px; padding:14px 16px; font-family:'Tajawal';
+  font-size:14px; resize:vertical;
+}
+textarea:focus{ outline:none; border-color: var(--cyan); }
+
+.analyze-btn{
+  width:100%; margin-top:22px;
+  background: linear-gradient(95deg, var(--cyan), var(--pink));
+  color:#0B0D11; font-family:'Cairo'; font-weight:800; font-size:16.5px;
+  border:none; border-radius: 12px; padding:17px; cursor:pointer;
+  transition:.2s; letter-spacing:0.3px;
+}
+.analyze-btn:hover{ filter: brightness(1.1); transform: translateY(-1px); }
+.analyze-btn:active{ transform: translateY(0); }
+.analyze-btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+
+/* ===== Loading ===== */
+#loadingBox{ display:none; text-align:center; padding: 34px 10px; }
+.spinner{
+  width:36px; height:36px; border:3px solid var(--line); border-top-color: var(--cyan);
+  border-radius:50%; margin:0 auto 16px; animation: spin 0.9s linear infinite;
+}
+@keyframes spin{ to{ transform: rotate(360deg);} }
+#loadingMsg{ color: var(--muted); font-family:'JetBrains Mono'; font-size:13px; }
+
+/* ===== Filmstrip ===== */
+.filmstrip{ display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; }
+.filmstrip .fitem{ flex-shrink:0; }
+.filmstrip img{
+  width:92px; height:92px; object-fit:cover; border-radius:9px; border:1px solid var(--line);
+}
+.filmstrip .fcap{ font-family:'JetBrains Mono'; font-size:10px; color:var(--muted-2); text-align:center; margin-top:5px;}
+
+/* ===== Results ===== */
+#results{ display:none; }
+.score-wrap{ display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
+.gauge{ position:relative; width:136px; height:136px; flex-shrink:0; }
+.gauge svg{ transform: rotate(-90deg); }
+.gauge-num{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.gauge-num .n{ font-family:'Cairo'; font-weight:900; font-size:34px; }
+.gauge-num .l{ font-size:10px; color:var(--muted-2); font-family:'JetBrains Mono'; letter-spacing:1px; }
+.verdict{ font-family:'Cairo'; font-weight:700; font-size:16.5px; flex:1; min-width:220px; }
+
+.subcard{
+  background: var(--surface-2); border:1px solid var(--line-soft); border-radius:12px; padding:16px 18px; margin-bottom:12px;
+}
+.subcard h3{ font-family:'Cairo'; font-size:14px; margin-bottom:9px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.mini-score{ font-family:'JetBrains Mono'; font-size:12px; padding:3px 10px; border-radius:20px; border:1px solid; }
+.subcard p{ font-size:14px; color: #cfd3da; }
+
+.phase-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+.phase-card{ background: var(--surface-3); border:1px solid var(--line-soft); border-radius:10px; padding:13px; }
+.phase-card .ph-lbl{ font-family:'JetBrains Mono'; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+.phase-card p{ font-size:12.5px; color:#c7ccd4; }
+.phase-card.hook .ph-lbl{ color: var(--pink); }
+.phase-card.body .ph-lbl{ color: var(--cyan); }
+.phase-card.cta .ph-lbl{ color: var(--amber); }
+
+ul.list{ margin-top:8px; padding-inline-start:18px; font-size:13.5px; }
+ul.list li{ margin-bottom:6px; }
+ul.strengths li{ color: var(--green); }
+ul.weaknesses li{ color: var(--red); }
+
+.risk-item{
+  display:flex; gap:10px; align-items:flex-start; background: var(--surface-3);
+  border:1px solid var(--line-soft); border-radius:10px; padding:11px 14px; margin-bottom:8px; font-size:13.5px;
+}
+.risk-time{
+  font-family:'JetBrains Mono'; font-size:11px; color: var(--bg); background: var(--amber);
+  border-radius:6px; padding:2px 8px; flex-shrink:0; white-space:nowrap; height:fit-content;
+}
+
+.suggestions li{
+  background: var(--surface-2); border:1px solid var(--line-soft); border-radius:10px;
+  padding: 12px 16px; margin-bottom:9px; list-style:none; font-size:14px;
+  border-inline-start: 3px solid var(--amber); display:flex; gap:10px; align-items:flex-start;
+}
+.suggestions li::before{ content:'✦'; color: var(--amber); flex-shrink:0; }
+
+.err-box{
+  display:none; background: rgba(255,92,92,0.08); border:1px solid var(--red);
+  color:#ffb3b3; border-radius:10px; padding:14px 16px; font-size:13.5px; margin-top:14px;
+}
+video, canvas{ display:none; }
+footer{ text-align:center; color:var(--muted-2); font-size:12px; margin-top:36px; }
+
+@media (max-width:560px){
+  .phase-grid{ grid-template-columns: 1fr; }
+  .timeline-sig .seg .lbl{ font-size:11px; }
+}
+
+/* ===== Auth gate ===== */
+.auth-card{
+  background: var(--surface); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 28px 26px;
+}
+.auth-card h2{ font-family:'Cairo'; font-weight:800; font-size:19px; margin-bottom:6px; text-align:center; }
+.auth-card .auth-sub{ text-align:center; color: var(--muted); font-size:13px; margin-bottom:22px; }
+.auth-field{ margin-bottom:14px; }
+.auth-field label{ display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px; }
+.auth-field input{
+  width:100%; background: var(--surface-2); border:1px solid var(--line); color:var(--text);
+  border-radius:9px; padding:12px 14px; font-family:'Tajawal'; font-size:14px; direction:ltr; text-align:right;
+}
+.auth-field input:focus{ outline:none; border-color: var(--cyan); }
+.auth-btn{
+  width:100%; margin-top:6px; background: linear-gradient(95deg, var(--cyan), var(--pink));
+  color:#0B0D11; font-family:'Cairo'; font-weight:800; font-size:15px; border:none; border-radius:11px;
+  padding:14px; cursor:pointer;
+}
+.auth-btn:disabled{ opacity:.5; cursor:not-allowed; }
+.auth-switch{ text-align:center; margin-top:16px; font-size:13px; color: var(--muted); }
+.auth-switch a{ color: var(--cyan); cursor:pointer; text-decoration:none; }
+.auth-msg{ font-size:13px; text-align:center; margin-top:12px; padding:10px; border-radius:8px; display:none; }
+.auth-msg.err{ display:block; background: rgba(255,92,92,0.08); border:1px solid var(--red); color:#ffb3b3; }
+.auth-msg.ok{ display:block; background: rgba(95,227,138,0.08); border:1px solid var(--green); color: var(--green); }
+
+.setup-note{
+  margin-top:18px; font-size:12px; color: var(--muted-2); line-height:1.8; border-top:1px solid var(--line); padding-top:14px;
+}
+.setup-note a{ color: var(--cyan); }
+
+.topbar{
+  max-width:960px; margin:0 auto 8px; display:flex; align-items:center; justify-content:space-between;
+  padding: 0 20px;
+}
+.usage-badge{
+  font-family:'JetBrains Mono'; font-size:11.5px; color: var(--muted); background: var(--surface);
+  border:1px solid var(--line); border-radius:20px; padding:6px 14px; display:flex; align-items:center; gap:8px;
+}
+.usage-badge b{ color: var(--cyan); font-weight:600; }
+.logout-link{ font-size:12.5px; color: var(--muted); cursor:pointer; background:none; border:none; font-family:'Tajawal'; }
+.logout-link:hover{ color: var(--red); }
+.auth-open-btn{
+  font-family:'Cairo'; font-weight:700; font-size:12.5px; color: var(--bg); background: var(--cyan);
+  border:none; border-radius:20px; padding:8px 18px; cursor:pointer; transition:.2s;
+}
+.auth-open-btn:hover{ filter: brightness(1.08); }
+.limit-hit{
+  background: rgba(255,182,72,0.08); border:1px solid var(--amber); color: var(--amber);
+  border-radius:12px; padding:16px 18px; margin-bottom:18px; font-size:14px; text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div id="authModal" class="modal-overlay">
+  <div class="auth-card">
+    <button class="modal-close" id="modalCloseBtn">✕</button>
+    <h2 id="authTitle">تسجيل الدخول</h2>
+    <p class="auth-sub">سجل عشان تحفظلك تحليلاتك وتاخد حد شهري أكبر</p>
+
+    <div class="auth-field">
+      <label>الإيميل</label>
+      <input type="email" id="authEmail" placeholder="you@example.com">
+    </div>
+    <div class="auth-field">
+      <label>الباسورد</label>
+      <input type="password" id="authPassword" placeholder="••••••••">
+    </div>
+    <button class="auth-btn" id="authSubmitBtn">دخول</button>
+    <div class="auth-msg" id="authMsg"></div>
+    <div class="auth-switch">مفيش حساب؟ <a id="authSwitchLink">اعمل حساب جديد</a></div>
+
+    <div class="setup-note" id="setupNote" style="display:none">
+      محتاج توصّل مشروع <b>Supabase</b> مجاني الأول عشان نظام الحسابات يشتغل (٥ دقايق بالظبط).
+      <div class="auth-field" style="margin-top:12px;">
+        <label>Supabase Project URL</label>
+        <input type="text" id="sbUrlInput" placeholder="https://xxxx.supabase.co" style="direction:ltr;">
+      </div>
+      <div class="auth-field">
+        <label>Supabase anon public key</label>
+        <input type="text" id="sbKeyInput" placeholder="eyJhbGciOi..." style="direction:ltr;">
+      </div>
+      <button class="auth-btn" id="saveConfigBtn" style="background:var(--surface-3); color:var(--text); border:1px solid var(--line);">احفظ واتصل</button>
+      <div class="setup-note">هتلاقي التعليمات كاملة خطوة بخطوة في ملف <code>SUPABASE_SETUP.md</code> المرفق.</div>
+    </div>
+  </div>
+</div>
+
+<div id="mainApp">
+<div class="topbar">
+  <div class="usage-badge" id="usageBadge">تجربة مجانية: باقيلك تحليل واحد</div>
+  <button class="auth-open-btn" id="openAuthBtn">تسجيل الدخول</button>
+  <button class="logout-link" id="logoutBtn" style="display:none;">تسجيل خروج</button>
+</div>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Viral Script Lab</div>
+    <h1>حلل الفيديو قبل ما تنزله</h1>
+    <p class="sub">ارفع فيديو مجانًا دلوقتي وشوف تحليل حقيقي — من غير ما تسجل. سجل بعدها عشان تاخد حد شهري أكبر وتحفظ تحليلاتك.</p>
+    <div class="timeline-sig">
+      <div class="playhead"></div>
+      <div class="seg hook"><span class="lbl">Hook</span>٠-٣ ثانية</div>
+      <div class="seg body"><span class="lbl">Body</span>بناء المحتوى</div>
+      <div class="seg cta"><span class="lbl">CTA</span>الخاتمة</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2><span class="step-num">١</span>الفيديو <span class="badge">لتحليل الفيجوالز والإيديت</span></h2>
+    <div class="dropzone" id="dropzone">
+      <div class="icon">🎬</div>
+      <div class="main-txt">اسحب الفيديو هنا أو دوس للرفع</div>
+      <div class="sub-txt">MP4 / MOV — بيتحلل من جوه المتصفح، مفيش رفع لسيرفر خارجي</div>
+      <input type="file" id="fileInput" accept="video/*">
+    </div>
+    <div class="file-chip" id="fileChip">
+      <span class="name">🎞️ <span id="fileName"></span></span>
+      <button id="removeFile">إزالة</button>
+    </div>
+
+    <label class="field-label">أو حط لينك المنشور (تيك توك / انستجرام / فيسبوك / يوتيوب)</label>
+    <div class="link-row">
+      <span class="li">🔗</span>
+      <input type="text" id="linkInput" placeholder="https://tiktok.com/@... أو instagram.com/reel/...">
+      <span class="tag" id="linkTag">محتاج سيرفر متوصّل</span>
+    </div>
+    <div class="hint">التحميل التلقائي من اللينك محتاج سيرفر خلفي بتاعك موصول تحت (المنصات دي بتمنع أي موقع يسحب فيديو منها مباشرة من غير سيرفر). لو مفيش سيرفر متوصّل، ارفع الفيديو نفسه فوق بدل كده.</div>
+
+    <div class="backend-box">
+      <div class="bb-head" id="bbHead">
+        <span>⚙️</span>
+        <span class="bb-title">إعدادات السيرفر الخلفي</span>
+        <span class="arrow" id="bbArrow">▾</span>
+      </div>
+      <div class="bb-body" id="bbBody">
+        <div class="backend-row">
+          <input type="text" id="backendUrlInput" placeholder="https://your-app.onrender.com">
+          <button class="check-btn" id="checkBackendBtn">تحقق من الاتصال</button>
+        </div>
+        <div class="status-line"><span class="status-dot" id="statusDot"></span><span id="statusText">مش متوصّل</span></div>
+        <div class="hint">⚠️ السيرفر ده مطلوب عشان أي تحليل يشتغل خالص (مش بس اللينكات) — هو اللي بيكلم Claude بمفتاحك الخاص. من غيره، زرار "حلل الفيديو" مش هيرجع نتيجة. وصّل اللينك بتاع السيرفر اللي عملته من الكود المرفق في viral-backend، وحط فيه ANTHROPIC_API_KEY (الخطوات في README.md). بعد ما توصله وتتأكد إنه شغال، الأداة هتشتغل بالكامل.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">٢</span>السكريبت <span class="badge">لتحليل الهوك والبنية الكاملة</span></h2>
+    <label class="field-label">الصق نص السكريبت أو الكابشن كامل</label>
+    <textarea id="scriptInput" rows="7" placeholder="اكتب أول جملة بتقولها في الفيديو (الهوك)، وباقي الكلام لحد الخاتمة..."></textarea>
+    <div class="hint">مفيش أداة تفريغ صوت أوتوماتيك دلوقتي، فده بيتحط يدوي. لو موجود، هيتحلل بالكامل: هوك، بناء، وخاتمة. لو مش موجود هحلل الفيجوالز والإيديت بس.</div>
+  </div>
+
+  <button class="analyze-btn" id="analyzeBtn">حلل الفيديو دلوقتي</button>
+  <div class="err-box" id="errBox"></div>
+
+  <div id="loadingBox">
+    <div class="spinner"></div>
+    <div id="loadingMsg">بنجهز التحليل...</div>
+  </div>
+
+  <div id="results">
+    <div class="card">
+      <h2>الفريمات اللي اتحللت</h2>
+      <div class="filmstrip" id="filmstrip"></div>
+    </div>
+
+    <div class="card">
+      <div class="score-wrap">
+        <div class="gauge">
+          <svg width="136" height="136">
+            <circle cx="68" cy="68" r="58" stroke="#272E39" stroke-width="12" fill="none"/>
+            <circle id="gaugeCircle" cx="68" cy="68" r="58" stroke="url(#grad)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="364" stroke-dashoffset="364"/>
+            <defs>
+              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#2FE6D8"/>
+                <stop offset="100%" stop-color="#FF4D8D"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="gauge-num"><span class="n" id="scoreNum">0</span><span class="l">SCORE</span></div>
+        </div>
+        <div class="verdict" id="verdictText"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🪝 الهوك <span class="badge">أول ٣ ثواني</span></h2>
+      <div class="subcard">
+        <h3>التقييم <span class="mini-score" id="hookScore"></span></h3>
+        <p id="hookFeedback"></p>
+      </div>
+      <div class="subcard">
+        <h3>اقتراح هوك بديل أقوى</h3>
+        <p id="hookSuggestion"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📝 السكريبت</h2>
+      <div class="subcard"><p id="scriptFeedback"></p></div>
+      <div class="phase-grid" id="phaseGrid">
+        <div class="phase-card hook"><div class="ph-lbl">Hook</div><p id="phaseHook"></p></div>
+        <div class="phase-card body"><div class="ph-lbl">Body</div><p id="phaseBody"></p></div>
+        <div class="phase-card cta"><div class="ph-lbl">CTA</div><p id="phaseCta"></p></div>
+      </div>
+      <div class="subcard" style="margin-top:12px;">
+        <ul class="list strengths" id="scriptStrengths"></ul>
+        <ul class="list weaknesses" id="scriptWeaknesses"></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✂️ الإيديت والتمبو <span class="badge" id="pacingBadge"></span></h2>
+      <div class="subcard">
+        <h3>معدل القطع التقديري <span class="mini-score" id="annoyanceTag"></span></h3>
+        <p id="cutFrequency"></p>
+      </div>
+      <div class="subcard"><p id="editingFeedback"></p></div>
+    </div>
+
+    <div class="card">
+      <h2>🎨 الفيجوالز والتكست هوك</h2>
+      <div class="subcard">
+        <h3>الإضاءة والتكوين</h3>
+        <p id="compLighting"></p>
+      </div>
+      <div class="subcard">
+        <h3>الكولور جريدنج</h3>
+        <p id="colorGrading"></p>
+      </div>
+      <div class="subcard">
+        <h3>التكست أوفرلاي / التكست هوك</h3>
+        <p id="textOverlayFeedback"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎙️ الشخص/المتحدث</h2>
+      <div class="subcard">
+        <h3>الحضور والإلقاء <span class="mini-score" id="presenterScore"></span></h3>
+        <p id="presenterFeedback"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📷 جودة التصوير</h2>
+      <div class="subcard"><p id="productionFeedback"></p></div>
+    </div>
+
+    <div class="card">
+      <h2>📉 تحليل الريتنشن</h2>
+      <div class="subcard"><p id="retentionFeedback"></p></div>
+      <div id="riskPoints"></div>
+    </div>
+
+    <div class="card">
+      <h2>💡 اقتراحات التحسين</h2>
+      <ul id="suggestionsList"></ul>
+    </div>
+  </div>
+
+  <footer>التحليل بيتم بالذكاء الاصطناعي — استخدمه كدليل، مش كحكم نهائي.</footer>
+</div>
+</div>
+
+<video id="hiddenVideo" muted playsinline></video>
+<canvas id="hiddenCanvas"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const FREE_MONTHLY_LIMIT = 3;
+
+let sb = null;
+let currentUser = null;
+let currentUsageRow = null; // {user_id, period, count}
+
+const ANON_FREE_LIMIT = 1;
+const authModal = document.getElementById('authModal');
+const mainApp = document.getElementById('mainApp');
+const authTitle = document.getElementById('authTitle');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const authMsg = document.getElementById('authMsg');
+const authSwitchLink = document.getElementById('authSwitchLink');
+const setupNote = document.getElementById('setupNote');
+const sbUrlInput = document.getElementById('sbUrlInput');
+const sbKeyInput = document.getElementById('sbKeyInput');
+const saveConfigBtn = document.getElementById('saveConfigBtn');
+const usageBadge = document.getElementById('usageBadge');
+const logoutBtn = document.getElementById('logoutBtn');
+const openAuthBtn = document.getElementById('openAuthBtn');
+const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+let authMode = 'signin'; // or 'signup'
+
+function openAuthModal(){ authModal.classList.add('open'); }
+function closeAuthModal(){ authModal.classList.remove('open'); }
+openAuthBtn.addEventListener('click', openAuthModal);
+modalCloseBtn.addEventListener('click', closeAuthModal);
+authModal.addEventListener('click', (e) => { if(e.target === authModal) closeAuthModal(); });
+
+function showAuthMsg(text, kind){
+  authMsg.textContent = text;
+  authMsg.className = 'auth-msg ' + kind;
+}
+
+authSwitchLink.addEventListener('click', () => {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  authTitle.textContent = authMode === 'signin' ? 'تسجيل الدخول' : 'حساب جديد';
+  authSubmitBtn.textContent = authMode === 'signin' ? 'دخول' : 'اعمل حساب';
+  authSwitchLink.textContent = authMode === 'signin' ? 'اعمل حساب جديد' : 'عندك حساب؟ سجل دخول';
+  authMsg.className = 'auth-msg';
+});
+
+async function initSupabase(){
+  try{
+    const savedUrl = await window.storage.get('sb_url', false).catch(() => null);
+    const savedKey = await window.storage.get('sb_key', false).catch(() => null);
+    if(savedUrl && savedUrl.value && savedKey && savedKey.value){
+      sb = window.supabase.createClient(savedUrl.value, savedKey.value);
+      setupNote.style.display = 'none';
+      const { data: { session } } = await sb.auth.getSession();
+      if(session && session.user){
+        await onLoggedIn(session.user);
+      } else {
+        await refreshAnonBadge();
+      }
+    } else {
+      setupNote.style.display = 'block';
+      await refreshAnonBadge();
+    }
+  }catch(e){
+    setupNote.style.display = 'block';
+    await refreshAnonBadge();
+  }
+}
+
+saveConfigBtn.addEventListener('click', async () => {
+  const url = sbUrlInput.value.trim();
+  const key = sbKeyInput.value.trim();
+  if(!url || !key){ showAuthMsg('حط الرابط والمفتاح الاتنين', 'err'); return; }
+  try{
+    await window.storage.set('sb_url', url, false);
+    await window.storage.set('sb_key', key, false);
+    sb = window.supabase.createClient(url, key);
+    setupNote.style.display = 'none';
+    showAuthMsg('اتوصل! دلوقتي اعمل حساب أو سجل دخول', 'ok');
+  }catch(e){
+    showAuthMsg('حصل خطأ في حفظ الإعدادات', 'err');
+  }
+});
+
+authSubmitBtn.addEventListener('click', async () => {
+  if(!sb){ showAuthMsg('وصّل Supabase الأول من فوق', 'err'); return; }
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  if(!email || !password){ showAuthMsg('حط الإيميل والباسورد', 'err'); return; }
+
+  authSubmitBtn.disabled = true;
+  try{
+    if(authMode === 'signin'){
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      await onLoggedIn(data.user);
+      closeAuthModal();
+    } else {
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if(error) throw error;
+      if(data.session){
+        await onLoggedIn(data.user);
+        closeAuthModal();
+      } else {
+        showAuthMsg('اتبعتلك إيميل تأكيد — افتحه وبعدين سجل دخول', 'ok');
+      }
+    }
+  }catch(err){
+    showAuthMsg(err.message || 'حصل خطأ', 'err');
+  }finally{
+    authSubmitBtn.disabled = false;
+  }
+});
+
+logoutBtn.addEventListener('click', async () => {
+  if(sb) await sb.auth.signOut();
+  currentUser = null;
+  logoutBtn.style.display = 'none';
+  openAuthBtn.style.display = 'inline-block';
+  await refreshAnonBadge();
+});
+
+function currentPeriod(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+async function onLoggedIn(user){
+  currentUser = user;
+  openAuthBtn.style.display = 'none';
+  logoutBtn.style.display = 'inline-block';
+  await refreshUsageBadge();
+}
+
+// ===== Anonymous (pre-login) trial =====
+async function getAnonUsed(){
+  try{
+    const r = await window.storage.get('anon_used', false);
+    return (r && r.value) ? parseInt(r.value, 10) || 0 : 0;
+  }catch(e){ return 0; }
+}
+async function setAnonUsed(n){
+  try{ await window.storage.set('anon_used', String(n), false); }catch(e){}
+}
+async function refreshAnonBadge(){
+  const used = await getAnonUsed();
+  const remaining = Math.max(0, ANON_FREE_LIMIT - used);
+  if(remaining > 0){
+    usageBadge.textContent = `تجربة مجانية: باقيلك ${remaining} تحليل`;
+  } else {
+    usageBadge.textContent = 'خلصت التجربة المجانية — سجل عشان تكمل';
+  }
+}
+
+// ===== Usage (logged-in) =====
+async function getUsageRow(){
+  const period = currentPeriod();
+  const { data, error } = await sb
+    .from('usage')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .eq('period', period)
+    .maybeSingle();
+  if(error){ console.warn('usage read error', error); return { user_id: currentUser.id, period, count: 0 }; }
+  return data || { user_id: currentUser.id, period, count: 0 };
+}
+
+async function refreshUsageBadge(){
+  currentUsageRow = await getUsageRow();
+  const remaining = Math.max(0, FREE_MONTHLY_LIMIT - currentUsageRow.count);
+  usageBadge.innerHTML = `<span>${currentUser.email}</span> · لسه عندك <b>${remaining}</b> من ${FREE_MONTHLY_LIMIT} تحليلات مجانية الشهر ده`;
+}
+
+// موحّدة: بتشتغل سواء المستخدم مسجل دخول أو لسه في التجربة المجانية
+async function hasUsageRemaining(){
+  if(currentUser){
+    currentUsageRow = await getUsageRow();
+    return currentUsageRow.count < FREE_MONTHLY_LIMIT;
+  }
+  const used = await getAnonUsed();
+  return used < ANON_FREE_LIMIT;
+}
+
+async function consumeUsage(){
+  if(currentUser){
+    const newCount = (currentUsageRow ? currentUsageRow.count : 0) + 1;
+    const { error } = await sb.from('usage').upsert({
+      user_id: currentUser.id,
+      period: currentPeriod(),
+      count: newCount,
+      updated_at: new Date().toISOString()
+    });
+    if(error){ console.warn('usage upsert error', error); }
+    currentUsageRow = { user_id: currentUser.id, period: currentPeriod(), count: newCount };
+    await refreshUsageBadge();
+  } else {
+    const used = await getAnonUsed();
+    await setAnonUsed(used + 1);
+    await refreshAnonBadge();
+  }
+}
+
+initSupabase();
+</script>
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const fileChip = document.getElementById('fileChip');
+const fileName = document.getElementById('fileName');
+const removeFile = document.getElementById('removeFile');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const errBox = document.getElementById('errBox');
+const loadingBox = document.getElementById('loadingBox');
+const loadingMsg = document.getElementById('loadingMsg');
+const results = document.getElementById('results');
+const video = document.getElementById('hiddenVideo');
+const canvas = document.getElementById('hiddenCanvas');
+
+let selectedFile = null;
+let objectUrl = null;
+
+// ===== Backend config (persisted per-user via artifact storage) =====
+const bbHead = document.getElementById('bbHead');
+const bbBody = document.getElementById('bbBody');
+const bbArrow = document.getElementById('bbArrow');
+const backendUrlInput = document.getElementById('backendUrlInput');
+const checkBackendBtn = document.getElementById('checkBackendBtn');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const linkTag = document.getElementById('linkTag');
+
+let backendHealthy = false;
+
+bbHead.addEventListener('click', () => {
+  bbBody.classList.toggle('open');
+  bbHead.classList.toggle('open');
+});
+
+function normalizeBackendUrl(u){
+  return u.trim().replace(/\/+$/, '');
+}
+
+async function loadSavedBackendUrl(){
+  try{
+    const saved = await window.storage.get('backend_url', false);
+    if(saved && saved.value){
+      backendUrlInput.value = saved.value;
+      checkBackend(false);
+    }
+  }catch(e){ /* لا يوجد رابط محفوظ */ }
+}
+
+async function saveBackendUrl(u){
+  try{ await window.storage.set('backend_url', u, false); }catch(e){ console.warn('couldn\'t persist backend url', e); }
+}
+
+async function checkBackend(userInitiated = true){
+  const url = normalizeBackendUrl(backendUrlInput.value);
+  if(!url){
+    if(userInitiated){ setStatus('bad', 'حط رابط الأول'); }
+    return;
+  }
+  setStatus('pending', 'بنتحقق...');
+  try{
+    const res = await fetch(url + '/api/health');
+    if(!res.ok) throw new Error();
+    backendHealthy = true;
+    setStatus('ok', 'متوصّل وشغال ✓');
+    linkTag.textContent = 'هيتحمّل تلقائي';
+    linkTag.style.color = 'var(--green)';
+    linkTag.style.borderColor = 'rgba(95,227,138,0.4)';
+    linkTag.style.background = 'rgba(95,227,138,0.08)';
+    saveBackendUrl(url);
+  }catch(e){
+    backendHealthy = false;
+    setStatus('bad', 'متقدرش أوصله — تأكد من الرابط وإن السيرفر شغال');
+    linkTag.textContent = 'محتاج سيرفر متوصّل';
+    linkTag.style.color = ''; linkTag.style.borderColor = ''; linkTag.style.background = '';
+  }
+}
+
+function setStatus(kind, text){
+  statusDot.className = 'status-dot ' + kind;
+  statusText.textContent = text;
+}
+
+checkBackendBtn.addEventListener('click', () => checkBackend(true));
+loadSavedBackendUrl();
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag');
+  if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+removeFile.addEventListener('click', () => {
+  selectedFile = null;
+  fileChip.style.display = 'none';
+  fileInput.value = '';
+});
+
+function handleFile(file){
+  if(!file.type.startsWith('video/')){ showErr('الملف ده مش فيديو.'); return; }
+  selectedFile = file;
+  fileName.textContent = file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)';
+  fileChip.style.display = 'flex';
+  errBox.style.display = 'none';
+}
+
+function showErr(msg){
+  errBox.textContent = msg;
+  errBox.style.display = 'block';
+}
+
+function setLoading(on, msg){
+  loadingBox.style.display = on ? 'block' : 'none';
+  analyzeBtn.disabled = on;
+  if(msg) loadingMsg.textContent = msg;
+}
+
+function extractFrames(file){
+  return new Promise((resolve, reject) => {
+    objectUrl = URL.createObjectURL(file);
+    video.src = objectUrl;
+
+    video.onloadedmetadata = async () => {
+      try{
+        const duration = video.duration;
+        if(!isFinite(duration) || duration <= 0){ reject('متقدرش أقرا مدة الفيديو.'); return; }
+
+        const w = 420;
+        const h = Math.round(w * (video.videoHeight / video.videoWidth || 1.78));
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        const times = [0.1, 0.6, 1.2, 2.0];
+        const spreadCount = 5;
+        for(let i=1; i<=spreadCount; i++){
+          times.push(Math.min(duration - 0.1, (duration / (spreadCount+1)) * i));
+        }
+
+        const frames = [];
+        for(const t of times){
+          await seekTo(t);
+          ctx.drawImage(video, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+          frames.push({ time: t, dataUrl });
+        }
+        resolve(frames);
+      }catch(err){ reject(err); }
+    };
+    video.onerror = () => reject('متقدرش أفتح ملف الفيديو ده.');
+  });
+}
+
+function seekTo(t){
+  return new Promise(resolve => {
+    const onSeeked = () => { video.removeEventListener('seeked', onSeeked); resolve(); };
+    video.addEventListener('seeked', onSeeked);
+    video.currentTime = t;
+  });
+}
+
+function renderFilmstrip(frames){
+  const strip = document.getElementById('filmstrip');
+  strip.innerHTML = '';
+  frames.forEach(f => {
+    const col = document.createElement('div');
+    col.className = 'fitem';
+    col.innerHTML = `<img src="${f.dataUrl}"><div class="fcap">${f.time.toFixed(1)}s</div>`;
+    strip.appendChild(col);
+  });
+}
+
+async function extractFramesFromBackend(backendUrl, videoUrl){
+  const res = await fetch(normalizeBackendUrl(backendUrl) + '/api/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: videoUrl })
+  });
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok){
+    throw new Error(data.error || 'السيرفر رفض يحمل الفيديو ده');
+  }
+  return (data.frames || []).map(f => ({ time: f.time, dataUrl: 'data:image/jpeg;base64,' + f.base64 }));
+}
+
+async function callClaude(frames, script, link){
+  if(!backendHealthy){
+    throw new Error('لازم توصّل السيرفر الخلفي الأول (من "إعدادات السيرفر الخلفي" فوق) عشان التحليل يشتغل من برّا شات Claude.');
+  }
+
+  const payloadFrames = frames.map(f => ({ time: f.time, base64: f.dataUrl.split(',')[1] }));
+
+  const res = await fetch(normalizeBackendUrl(backendUrlInput.value) + '/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ frames: payloadFrames, script, link })
+  });
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok){
+    throw new Error(data.error || 'فشل التحليل (status ' + res.status + ')');
+  }
+  return data;
+}
+
+function scoreColorVar(n){
+  if(n >= 70) return 'var(--green)';
+  if(n >= 40) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function riskColorVar(level){
+  if(!level) return 'var(--muted)';
+  if(level.includes('منخفض')) return 'var(--green)';
+  if(level.includes('متوسط')) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function renderResults(r){
+  results.style.display = 'block';
+
+  const circumference = 2 * Math.PI * 58;
+  const offset = circumference - (r.viral_score/100)*circumference;
+  document.getElementById('gaugeCircle').style.strokeDasharray = circumference;
+  document.getElementById('gaugeCircle').style.strokeDashoffset = offset;
+  document.getElementById('scoreNum').textContent = r.viral_score;
+  document.getElementById('verdictText').textContent = r.verdict;
+
+  const hs = document.getElementById('hookScore');
+  hs.textContent = r.hook.score + '/100';
+  hs.style.color = scoreColorVar(r.hook.score); hs.style.borderColor = scoreColorVar(r.hook.score);
+  document.getElementById('hookFeedback').textContent = r.hook.feedback;
+  document.getElementById('hookSuggestion').textContent = r.hook.improved_hook_suggestion;
+
+  document.getElementById('scriptFeedback').textContent = r.script.feedback;
+  document.getElementById('phaseHook').textContent = r.script.phases?.hook || '—';
+  document.getElementById('phaseBody').textContent = r.script.phases?.body || '—';
+  document.getElementById('phaseCta').textContent = r.script.phases?.cta || '—';
+  document.getElementById('scriptStrengths').innerHTML = (r.script.strengths || []).map(x => `<li>+ ${x}</li>`).join('');
+  document.getElementById('scriptWeaknesses').innerHTML = (r.script.weaknesses || []).map(x => `<li>- ${x}</li>`).join('');
+
+  document.getElementById('pacingBadge').textContent = r.editing.pacing_verdict;
+  const at = document.getElementById('annoyanceTag');
+  at.textContent = 'إزعاج: ' + r.editing.annoyance_risk;
+  at.style.color = riskColorVar(r.editing.annoyance_risk); at.style.borderColor = riskColorVar(r.editing.annoyance_risk);
+  document.getElementById('cutFrequency').textContent = r.editing.cut_frequency_estimate;
+  document.getElementById('editingFeedback').textContent = r.editing.feedback;
+
+  document.getElementById('compLighting').textContent = r.visuals.composition_lighting;
+  document.getElementById('colorGrading').textContent = r.visuals.color_grading;
+  document.getElementById('textOverlayFeedback').textContent = r.visuals.text_overlay_feedback;
+
+  const pScore = document.getElementById('presenterScore');
+  if(r.presenter && r.presenter.present){
+    pScore.textContent = r.presenter.score + '/100';
+    pScore.style.color = scoreColorVar(r.presenter.score); pScore.style.borderColor = scoreColorVar(r.presenter.score);
+    pScore.style.display = 'inline';
+  } else {
+    pScore.style.display = 'none';
+  }
+  document.getElementById('presenterFeedback').textContent = (r.presenter && r.presenter.feedback) || 'مفيش شخص ظاهر في الفريمات للتقييم.';
+
+  document.getElementById('productionFeedback').textContent = (r.production_quality && r.production_quality.feedback) || '';
+
+  document.getElementById('retentionFeedback').textContent = (r.retention && r.retention.feedback) || '';
+  const riskBox = document.getElementById('riskPoints');
+  const risks = (r.retention && r.retention.risk_points) || [];
+  riskBox.innerHTML = risks.map(rp => `<div class="risk-item"><span class="risk-time">${rp.time_or_phase}</span><span>${rp.issue}</span></div>`).join('');
+
+  document.getElementById('suggestionsList').innerHTML = (r.suggestions || []).map(s => `<li>${s}</li>`).join('');
+
+  results.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+analyzeBtn.addEventListener('click', async () => {
+  errBox.style.display = 'none';
+  results.style.display = 'none';
+  const script = document.getElementById('scriptInput').value.trim();
+  const link = document.getElementById('linkInput').value.trim();
+
+  if(!selectedFile && !link && !script){
+    showErr('لازم ترفع فيديو، أو تحط لينك (مع سيرفر متوصّل)، أو على الأقل تحط سكريبت عشان أقدر أحلل حاجة حقيقية.');
+    return;
+  }
+  if(!backendHealthy){
+    showErr('التحليل محتاج السيرفر الخلفي متوصّل (فيه المفتاح اللي بيكلم Claude). دوس "تحقق من الاتصال" جوه إعدادات السيرفر تحت.');
+    return;
+  }
+
+  const allowed = await hasUsageRemaining();
+  if(!allowed){
+    if(currentUser){
+      showErr(`خلصت الـ ${FREE_MONTHLY_LIMIT} تحليلات المجانية بتاعت الشهر ده. الخطة المدفوعة هتضاف قريب.`);
+    } else {
+      showErr('خلصت التجربة المجانية. سجل حساب مجاني عشان تكمل تحلل — دوس "تسجيل الدخول" فوق.');
+      openAuthModal();
+    }
+    return;
+  }
+
+  try{
+    let frames = [];
+    if(selectedFile){
+      setLoading(true, 'بنستخرج فريمات من الفيديو...');
+      frames = await extractFrames(selectedFile);
+      renderFilmstrip(frames);
+    } else if(link && backendHealthy){
+      setLoading(true, 'بنحمّل الفيديو من اللينك عبر السيرفر...');
+      const backendUrl = backendUrlInput.value;
+      frames = await extractFramesFromBackend(backendUrl, link);
+      if(!frames.length) throw new Error('السيرفر مرجعش فريمات — جرب لينك تاني أو ارفع الفيديو يدوي');
+      renderFilmstrip(frames);
+    } else {
+      document.getElementById('filmstrip').innerHTML = '<div class="hint">مفيش فيديو أو لينك — التحليل هيعتمد على السكريبت بس.</div>';
+    }
+
+    setLoading(true, 'بنحلل الهوك والسكريبت والإيديت والفيجوالز...');
+    const result = await callClaude(frames, script, link);
+    setLoading(false);
+    renderResults(result);
+    await consumeUsage();
+  }catch(err){
+    setLoading(false);
+    showErr(typeof err === 'string' ? err : ('حصل خطأ أثناء التحليل: ' + err.message));
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>
